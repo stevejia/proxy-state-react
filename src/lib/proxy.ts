@@ -1,6 +1,8 @@
 import { clone, isObject, stringify } from "./utils";
 const proxyState =function <K>(state: K, setState: any, scope?: any) {
-  console.log(scope);
+  if(scope) {
+    setState = setState.bind(scope);
+  }
   proxyChain(state, state, setState, scope);
   const proxyedState = proxy(state, state, setState, scope);
   return proxyedState;
@@ -33,11 +35,7 @@ const proxy = (obj: any, origin: any, setState: any, scope?: any) => {
       if (nowTargetJson === originTargetJson) {
         return true;
       }
-      setState.bind(scope)(clone(origin), ()=> {
-        console.log(scope.state);
-        scope.state = proxyState(scope.state, setState.bind(scope), scope);
-      });
-      return true;
+      return updateState(origin, setState, scope);
     },
     deleteProperty: (target, props) => {
       const originTargetJson = stringify(origin);
@@ -46,11 +44,25 @@ const proxy = (obj: any, origin: any, setState: any, scope?: any) => {
       if (nowTargetJson === originTargetJson) {
         return true;
       }
-      setState(clone(origin));
-      return true;
+      
+      return updateState(origin, setState, scope);
     },
   });
   return proxyedObj;
 };
+
+const updateState = (origin: any, setState: any, scope?: any) => {
+  if(!scope) {
+    setState(clone(origin));
+    return true;
+  }
+
+  setState(clone(origin), ()=> {
+    console.log(scope.state);
+    scope.state = proxy(origin, origin, setState, scope);
+  });
+
+  return true;
+}
 
 export {proxyState};

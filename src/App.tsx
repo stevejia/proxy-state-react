@@ -6,7 +6,7 @@ import ClsComp from "./components/cls-comp";
 function App() {
   return (
     <>
-      {/* <FunComp></FunComp> */}
+      <FunComp></FunComp>
       <ClsComp></ClsComp>
     </>
   );
